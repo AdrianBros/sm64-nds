@@ -5,27 +5,30 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Descargar repositorio
         uses: actions/checkout@v4
 
-      - name: Instalar dependencias nativas en el servidor
+      - name: Instalar herramientas base de Linux
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libaudiofile-dev sox bsdmainutils
+          sudo apt-get install -y build-essential libaudiofile-dev sox bsdmainutils wget curl
 
-      - name: Descargar e instalar compilador de Nintendo DS (devkitpro)
+      - name: Instalar devkitPro mediante Script Oficial
         run: |
-          sudo apt-get install -y gdebi-core
-          wget https://github.com
-          sudo gdebi -n devkitpro-pacman.amd64.deb
+          # Descargar y ejecutar el script automatizado oficial de devkitPro
+          wget https://apt.devkitpro.org/install-devkitpro-pacman
+          chmod +x ./install-devkitpro-pacman
+          sudo ./install-devkitpro-pacman
+          
+          # Instalar las herramientas específicas para compilar en Nintendo DS
           sudo dkp-pacman -Syyu --noconfirm
           sudo dkp-pacman -S nds-dev --noconfirm
 
       - name: Compilar juego de forma nativa
         run: |
-          # Configurar variables de entorno para que el sistema encuentre el compilador de NDS
+          # Activar las variables de entorno necesarias para el compilador
           export DEVKITPRO=/opt/devkitpro
           export DEVKITARM=$DEVKITPRO/devkitARM
           
@@ -35,5 +38,5 @@ jobs:
       - name: Guardar archivo ejecutable (.NDS)
         uses: actions/upload-artifact@v4
         with:
-          name: super-mario-64-.nds
+          name: super-mario-64-nds
           path: build/us/*.nds
