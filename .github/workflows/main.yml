@@ -10,8 +10,13 @@ jobs:
       - name: Descargar repositorio
         uses: actions/checkout@v4
 
-      - name: Construir entorno de compilación (Docker)
+      - name: Corregir y Construir entorno de compilación (Docker)
         run: |
+          # Modificar el Dockerfile original en caliente para asegurar que actualice los repositorios
+          sed -i 's/RUN apt update/RUN apt-get update \&\& apt-get upgrade -y/g' Dockerfile
+          sed -i 's/RUN apt -y install/RUN apt-get -y --no-install-recommends install/g' Dockerfile
+          
+          # Construir la imagen local
           docker build -t sm64 .
 
       - name: Compilar juego usando Docker
