@@ -5,26 +5,35 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Descargar repositorio
         uses: actions/checkout@v4
 
-      - name: Corregir y Construir entorno de compilación (Docker)
+      - name: Instalar dependencias nativas en el servidor
         run: |
-          # Modificar el Dockerfile original en caliente para asegurar que actualice los repositorios
-          sed -i 's/RUN apt update/RUN apt-get update \&\& apt-get upgrade -y/g' Dockerfile
-          sed -i 's/RUN apt -y install/RUN apt-get -y --no-install-recommends install/g' Dockerfile
-          
-          # Construir la imagen local
-          docker build -t sm64 .
+          sudo apt-get update
+          sudo apt-get install -y build-essential libaudiofile-dev sox bsdmainutils
 
-      - name: Compilar juego usando Docker
+      - name: Descargar e instalar compilador de Nintendo DS (devkitpro)
         run: |
-          docker run --rm --mount type=bind,source="$(pwd)",destination=/sm64 sm64 make VERSION=us -j4
+          sudo apt-get install -y gdebi-core
+          wget https://github.com
+          sudo gdebi -n devkitpro-pacman.amd64.deb
+          sudo dkp-pacman -Syyu --noconfirm
+          sudo dkp-pacman -S nds-dev --noconfirm
+
+      - name: Compilar juego de forma nativa
+        run: |
+          # Configurar variables de entorno para que el sistema encuentre el compilador de NDS
+          export DEVKITPRO=/opt/devkitpro
+          export DEVKITARM=$DEVKITPRO/devkitARM
+          
+          # Compilar la versión de USA
+          make VERSION=us -j4
 
       - name: Guardar archivo ejecutable (.NDS)
         uses: actions/upload-artifact@v4
         with:
-          name: super-mario-64-nds
+          name: super-mario-64-.nds
           path: build/us/*.nds
