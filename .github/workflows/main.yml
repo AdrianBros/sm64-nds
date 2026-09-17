@@ -1,7 +1,7 @@
 name: Compilar SM64 NDS
 
 on:
-  workflow_dispatch: # Permite compilar manualmente con un botón
+  workflow_dispatch:
 
 jobs:
   build:
@@ -10,9 +10,12 @@ jobs:
       - name: Descargar repositorio
         uses: actions/checkout@v4
 
+      - name: Construir entorno de compilación (Docker)
+        run: |
+          docker build -t sm64 .
+
       - name: Compilar juego usando Docker
         run: |
-          # Construir la imagen Docker y compilar la versión de USA
           docker run --rm --mount type=bind,source="$(pwd)",destination=/sm64 sm64 make VERSION=us -j4
 
       - name: Guardar archivo ejecutable (.NDS)
