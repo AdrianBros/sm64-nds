@@ -1,0 +1,22 @@
+name: Compilar SM64 NDS
+
+on:
+  workflow_dispatch: # Permite compilar manualmente con un botón
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Compilar juego usando Docker
+        run: |
+          # Construir la imagen Docker y compilar la versión de USA
+          docker run --rm --mount type=bind,source="$(pwd)",destination=/sm64 sm64 make VERSION=us -j4
+
+      - name: Guardar archivo ejecutable (.NDS)
+        uses: actions/upload-artifact@v4
+        with:
+          name: super-mario-64-nds
+          path: build/us/*.nds
